@@ -1,0 +1,18 @@
+@import url('global.css');
+
+.dashboard-section {
+    margin-bottom: 20px;
+}
+
+.dashboard-section h2 {
+    margin-top: 0;
+}
+
+.dashboard-section table {
+    margin-top: 10px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: flex-end;
+}
