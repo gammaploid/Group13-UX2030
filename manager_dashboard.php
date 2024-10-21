@@ -1,4 +1,5 @@
 <?php
+// manager_dashboard.php
 session_start();
 include 'db_connection.php';
 
@@ -37,6 +38,7 @@ $result_operators = $conn->query($sql_operators);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factory Manager Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="styles/global.css">
     <link rel="stylesheet" type="text/css" href="styles/manager_dashboard.css">
 </head>
 <body>

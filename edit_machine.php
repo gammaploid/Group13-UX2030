@@ -1,46 +1,40 @@
 <?php
+// edit_machine.php
 session_start();
 include 'db_connection.php';
 
-if (!isset($_SESSION['user_id']) ||!isset($_SESSION['role'])) {
-    header("Location: login.php?error=session_expired");
-    exit();
-}
-
-// Authentication check for admins and managers
-if (!in_array($_SESSION['role'], ['admin', 'manager'])) {
+// Authentication check for admins only
+if ($_SESSION['role']!== 'admin') {
     header("Location: login.php?error=access_denied");
     exit();
 }
 
+$log_id = $_GET['log_id'];
 
-$machine_id = $_GET['machine_id'];
-
-// SQL query to retrieve machine details
-$sql = "SELECT * FROM machines WHERE machine_id = '$machine_id'";
+// Fetch the machine details
+$sql = "SELECT * FROM machines WHERE log_id = '$log_id'";
 $result = $conn->query($sql);
-$row = $result->fetch_assoc();
+$machine = $result->fetch_assoc();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $machine_name = $conn->real_escape_string($_POST['machine_name']);
 
-    
-
-    // SQL query to update machine details
-    $sql = "UPDATE machines SET machine_name = '$machine_name' WHERE machine_id = '$machine_id'";
+    $sql = "UPDATE machines SET machine_name = '$machine_name' WHERE log_id = '$log_id'";
     if ($conn->query($sql) === TRUE) {
         header("Location: machine_management.php?success=Machine updated successfully");
+        exit();
     } else {
-        header("Location: edit_machine.php?machine_id=$machine_id&error=Error updating machine: " . $conn->error);
+        header("Location: machine_management.php?error=Error updating machine: ". $conn->error);
+        exit();
     }
-
-    exit(); 
-    $conn->close();
+}
+// Machine operational status switcher
+if ($row['operational_status'] == 'non-operational') {
+    echo "<button class='op-status-switch' data-machine-id='{$row['log_id']}'>Mark as Operational</button>";
+} else {
+    echo "<button class='op-status-switch dimmed' data-machine-id='{$row['log_id']}'>Mark as Non-Operational</button>";
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,26 +42,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Machine</title>
-    <link rel="stylesheet" type="text/css" href="styles/edit_machine.css">
+    <link rel="stylesheet" type="text/css" href="global.css">
+    <link rel="stylesheet" type="text/css" href="styles/machine_management.css">
 </head>
 <body>
-    <div class="container">
-        <?php if (isset($_GET['error'])) { ?>
-            <div class="alert error"><?php echo $_GET['error']; ?></div>
-        <?php } ?>
-
-        <?php if (isset($_GET['success'])) { ?>
-            <div class="alert success"><?php echo $_GET['success']; ?></div>
-        <?php } ?>
-
-        <h1>Edit Machine</h1>
-        <form action="edit_machine.php?machine_id=<?php echo $machine_id; ?>" method="post">
-            <label for="machine_name">Machine Name:</label>
-            <input type="text" id="machine_name" name="machine_name" value="<?php echo $row['machine_name']; ?>" required>
+    <div class="container" style="background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+        <h2>Edit Machine</h2>
+        <form action="edit_machine.php?log_id=<?php echo $log_id;?>" method="post">
+            <div class="form-group">
+                <label for="machine_name">Machine Name:</label>
+                <input type="text" id="machine_name" name="machine_name" value="<?php echo htmlspecialchars($machine['machine_name'], ENT_QUOTES, 'UTF-8');?>" required>
+            </div>
             <button type="submit" class="button">Update Machine</button>
         </form>
+        <a href="machine_management.php" class="button">Back to Machine Management</a>
     </div>
-
-    <script src="scripts/edit_machine.js"></script>
 </body>
 </html>

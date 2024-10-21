@@ -17,7 +17,7 @@ $result = $conn->query($sql);
 
 ?>
 
-<!-- Display all user profiles -->
+
 <h1>User Profiles</h1>
 <?php while ($row = $result->fetch_assoc()): ?>
     <div>
@@ -34,5 +34,4 @@ $result = $conn->query($sql);
     </div>
 <?php endwhile; ?>
 
-<!-- Display phone number in user profile -->
 <p>Phone Number: <?php echo $row['phone_number'];?></p>

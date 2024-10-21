@@ -1,4 +1,5 @@
 <?php
+// delete_profile.php
 session_start();
 include 'db_connection.php';
 

@@ -1,18 +1,214 @@
-@import url('global.css');
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f0f0f0;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sidebar h1 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.sidebar nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar nav ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar nav ul li a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.sidebar nav ul li a:hover,
+.sidebar nav ul li a.active {
+    background-color: #ddd;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.top-bar {
+    background-image: linear-gradient(to right, #152c20, #1b3024);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-right: 20px;
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.profile-dropdown {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: larger;
+    font-stretch: expanded;
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 20px;
+    list-style-type: square;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-profile:hover .profile-dropdown {
+    display: block;
+}
+
+.notification-area {
+    position: relative;
+}
+
+.notification-icon {
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+.notification-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    list-style-type: none;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.notification-count {
+    background-color: #ff6b6b;
+    color: #fff;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+
+.notification-list li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-list li:last-child {
+    border-bottom: none;
+}
+
+.notification-list a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+}
+
+.notification-time {
+    font-size: 12px;
+    color: #888;
+    display: block;
+    margin-top: 5px;
+}
+
+.dashboard-content {
+    padding: 20px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
 
 .dashboard-section {
-    margin-bottom: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
 
 .dashboard-section h2 {
     margin-top: 0;
+    margin-bottom: 15px;
 }
 
-.dashboard-section table {
-    margin-top: 10px;
+.button {
+    display: inline-block;
+    background-image: linear-gradient(to right, #09a225, #00b31e);
+    color: #fff;
+    padding: 15px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-image 0.3s;
 }
 
-.button-group {
-    display: flex;
-    justify-content: flex-end;
+.button:hover {
+    background-image: linear-gradient(to right, #00b31e, #009925);
+}
+
+.table-container {
+    overflow-x: auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    padding: 15px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
 }

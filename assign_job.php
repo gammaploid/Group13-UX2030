@@ -39,6 +39,7 @@ $result_machines = $conn->query($sql_machines);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Job</title>
+    <link rel="stylesheet" type="text/css" href="styles/global.css">
     <link rel="stylesheet" type="text/css" href="styles/assign_job.css">
 </head>
 <body>

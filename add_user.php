@@ -13,11 +13,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $conn->real_escape_string($_POST['role']);
 
     $sql = "INSERT INTO users (username, password, role) VALUES ('$username', '$password', '$role')";
-    
+
     if ($conn->query($sql) === TRUE) {
-        header("Location: admin_dashboard.php?message=User added successfully");
+        header("Location: user_management.php?success=User added successfully");
     } else {
-        header("Location: admin_dashboard.php?error=Error adding user: " . $conn->error);
+        header("Location: user_management.php?error=Error adding user: " . $conn->error);
     }
 }
 

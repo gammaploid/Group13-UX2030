@@ -1,4 +1,5 @@
 <?php
+// edit_operator.php
 session_start();
 include 'db_connection.php';
 
@@ -38,6 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Operator</title>
+    <link rel="stylesheet" type="text/css" href="styles/global.css">
     <link rel="stylesheet" type="text/css" href="styles/edit_operator.css">
 </head>
 <body>

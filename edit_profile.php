@@ -1,4 +1,5 @@
 <?php
+// edit_profile.php
 session_start();
 include 'db_connection.php';
 
@@ -16,7 +17,7 @@ $row = $result->fetch_assoc();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $conn->real_escape_string($_POST['email']);
-    $phone_number = $conn->real_escape_string($_POST['phone_number']); // Added phone number variable
+    $phone_number = $conn->real_escape_string($_POST['phone_number']); 
 
     $sql = "UPDATE users SET email = '$email', phone_number = '$phone_number' WHERE id = '$user_id'";
     if ($conn->query($sql) === TRUE) {
