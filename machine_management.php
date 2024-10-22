@@ -1,4 +1,5 @@
 <?php
+// machine_management.php
 session_start();
 include 'db_connection.php';
 require_once 'Notification.php';

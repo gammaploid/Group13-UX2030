@@ -1,62 +1,70 @@
 <?php
-// user_management.php
-session_start();
-include 'db_connection.php';
+// Define page variables
+$page = 'user_management';
+$page_title = 'User Management';
+$back_url = 'admin_dashboard.php';
 
-// Authentication check for admins only
-if ($_SESSION['role'] !== 'admin') {
-    header("Location: login.php?error=access_denied");
-    exit();
-}
+include 'templates/admin_header.php';
+require_once 'db_connection.php';
 
 // Handle search query
 $search_query = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
 // SQL query to retrieve all users or search results
-$sql = "SELECT id, username, role FROM users WHERE username LIKE '%$search_query%'";
+$sql = "SELECT id, username, name, email, role FROM users WHERE username LIKE '%$search_query%' OR name LIKE '%$search_query%'";
 $result = $conn->query($sql);
+
+if ($result === false) {
+    die("Error executing query: " . $conn->error);
+}
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
-    <link rel="stylesheet" type="text/css" href="styles/global.css">
-    <link rel="stylesheet" type="text/css" href="styles/user_management.css">
-</head>
-<body>
-    <h1>User Management</h1>
-    <form action="user_management.php" method="get">
-        <input type="text" name="search" placeholder="Search by username" value="<?php echo htmlspecialchars($search_query); ?>">
-        <button type="submit">Search</button>
+<div class='dashboard-content'>
+    <h1 class="page-title"><?php echo $page_title; ?></h1>
+
+    <!-- Search Form -->
+    <form action='user_management.php' method='get' class="search-form">
+        <input type='text' name='search' placeholder='Search by username or name' value='<?php echo htmlspecialchars($search_query); ?>'>
+        <button type='submit' class="button search-button">Search</button>
     </form>
 
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Actions</th>
-        </tr>
-        <?php while ($row = $result->fetch_assoc()) { ?>
-        <tr>
-            <td><?php echo $row['id']; ?></td>
-            <td><?php echo $row['username']; ?></td>
-            <td><?php echo $row['role']; ?></td>
-            <td>
-                <a href="edit_user.php?id=<?php echo $row['id']; ?>" class="button">Edit</a> | 
-                <a href="delete_user.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Are you sure?');" class="button">Delete</a>
-            </td>
-        </tr>
-        <?php } ?>
-    </table>
+    <!-- User Table -->
+    <?php if ($result->num_rows > 0) { ?>
+        <div class="table-responsive">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($row = $result->fetch_assoc()) { ?>
+                        <tr>
+                            <td><?php echo $row['id']; ?></td>
+                            <td><?php echo $row['username']; ?></td>
+                            <td><?php echo $row['name']; ?></td>
+                            <td><?php echo $row['email']; ?></td>
+                            <td><?php echo $row['role']; ?></td>
+                            <td class="action-buttons">
+                                <a href="edit_user.php?id=<?php echo $row['id']; ?>" class="button edit-button">Edit</a>
 
-    <div class="button-group">
-        <a href="add_user.php" class="button">Add New User</a>
-    </div>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    <?php } else { ?>
+        <p class="no-results">No users found.</p>
+    <?php } ?>
 
-    <script src="scripts/user_management.js"></script>
-</body>
-</html>
+    <!-- Add New User Button -->
+    <a href="add_user.php" class="button add-button">Add New User</a>
+</div>
+
+<?php include 'templates/admin_footer.php'; ?>

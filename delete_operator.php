@@ -1,4 +1,5 @@
 <?php
+// delete_operator.php
 session_start();
 include 'db_connection.php';
 

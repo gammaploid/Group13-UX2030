@@ -8,40 +8,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Login Logic
-$sql = "SELECT id, username, role, password FROM users WHERE username = '$username'";
-$result = $conn->query($sql);
+    $sql = "SELECT id, username, role, password FROM users WHERE username =?";
 
-if ($result->num_rows == 1) {
-    $row = $result->fetch_assoc();
-    if (password_verify($password, $row['password'])) {
-        $_SESSION['user_id'] = $row['id'];
-        $_SESSION['username'] = $row['username'];
-        $_SESSION['role'] = $row['role'];
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        switch ($row['role']) {
-            case 'admin':
-                header("Location: admin_dashboard.php");
-                break;
-            case 'manager':
-                header("Location: manager_dashboard.php");
-                break;
-            case 'operator':
-                header("Location: operator_dashboard.php");
-                break;
-            case 'auditor':
-                header("Location: auditor_dashboard.php");
-                break;
-            default:
-                header("Location: login.php?error=invalid_role");
+        if ($result->num_rows == 1) {
+            $row = $result->fetch_assoc();
+            if (password_verify($password, $row['password'])) {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['username'] = $row['username'];
+                $_SESSION['role'] = $row['role'];
+
+                switch ($row['role']) {
+                    case 'admin':
+                        header("Location: admin_dashboard.php");
+                        break;
+                    case 'manager':
+                        header("Location: manager_dashboard.php");
+                        break;
+                    case 'operator':
+                        header("Location: operator_dashboard.php");
+                        break;
+                    case 'auditor':
+                        header("Location: auditor_dashboard.php");
+                        break;
+                    default:
+                        header("Location: login.php?error=invalid_role");
+                }
+                exit(); // Add exit after header to prevent further execution
+            } else {
+                header("Location: login.php?error=invalid_password");
+                exit();
+            }
+        } else {
+            header("Location: login.php?error=user_not_found");
+            exit();
         }
+        $stmt->close();
     } else {
-        header("Location: login.php?error=invalid_password");
+        header("Location: login.php?error=sql_error");
+        exit();
     }
-} else {
-    header("Location: login.php?error=user_not_found");
-}
-$conn->close();
-
+    $conn->close();
 }
 
 ?>
@@ -58,6 +69,19 @@ $conn->close();
 <body>
     <form action="login.php" method="post">
         <h2>SMD Login</h2>
+        <?php
+            if (isset($_GET['error'])) {
+                if ($_GET['error'] == 'invalid_password') {
+                    echo '<p class="error">Invalid password. Please try again.</p>';
+                } elseif ($_GET['error'] == 'user_not_found') {
+                    echo '<p class="error">User not found. Please register first.</p>';
+                } elseif ($_GET['error'] == 'invalid_role') {
+                    echo '<p class="error">Invalid user role. Please contact the administrator.</p>';
+                } elseif ($_GET['error'] == 'sql_error') {
+                    echo '<p class="error">Database error. Please try again later.</p>';
+                }
+            }
+        ?>
         <input type="text" name="username" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
         <button type="submit">Login</button>

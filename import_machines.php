@@ -1,4 +1,5 @@
 <?php
+// import_machines.php
 include 'db_connection.php';
 
 // Get unique machine names from factory_log

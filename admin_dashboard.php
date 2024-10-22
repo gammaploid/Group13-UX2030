@@ -1,106 +1,150 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php?error=access_denied");
-    exit();
+// admin_dashboard.php
+$page = 'admin_dashboard';
+$page_title = 'Admin Dashboard';
+include 'templates/admin_header.php';
+require_once 'message.php';
+
+use App\Message;
+
+$conn = new mysqli("localhost", "root", "root", "smd_database");
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
-require_once 'Notification.php';
-require_once 'db_connection.php';
-use App\Notification\Notification;
-$notification = new Notification($conn);
-$unreadNotifications = $notification->getUnreadNotifications($_SESSION['user_id']);
 
-/*if (!empty($unreadNotifications)) {
-    echo "<h2>Unread Notifications</h2>";
-    echo "<ul>";
-    foreach ($unreadNotifications as $notification) {
-        echo "<li>{$notification['message']} ({$notification['created_at']})</li>";
-    }
-    echo "</ul>";
-} else {
-    echo "<h2>No Unread Notifications</h2>";
-}*/
-?> 
+$message = new Message($conn);
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - SMD</title>
-    <link rel="stylesheet" type="text/css" href="styles/global.css">
-    <link rel="stylesheet" type="text/css" href="styles/admin_dashboard.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h1>SMD Admin</h1>
-            <nav>
-                <ul>
-                    <li><a href="admin_dashboard.php" class="active">Dashboard</a></li>
-                    <li><a href="machine_management.php">Machine Management</a></li>
-                    <li><a href="user_management.php">User Management</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="user-profile">
-                    <img src="profile_pic.png" alt="Profile Picture">
-                    <span><?php echo $_SESSION['username']; ?></span>
-                    <ul class="profile-dropdown">
-                        <li><a href="profile_info.php">Profile Info</a></li>
-                        <li><a href="logout.php">Logout</a></li>
-                    </ul>
-                </div>
-                <div class="notification-area">
-                    <div class="notification-icon" id="notificationIcon">
-                        <span class="notification-count"><?php echo count($unreadNotifications); ?></span>
-                        <span>Notifications</span>
-                    </div>
-                    <ul class="notification-list" id="notificationList">
-                        <?php foreach ($unreadNotifications as $notification) { ?>
-                            <li>
-                                <a href="#">
-                                    <?php echo $notification['message']; ?>
-                                    <span class="notification-time"><?php echo $notification['created_at']; ?></span>
-                                </a>
-                            </li>
-                        <?php } ?>
-                    </ul>
-                </div>
-            </header>
-            <div class="dashboard-content">
-                <h1>Welcome, Admin <?php echo $_SESSION['username']; ?></h1>
-                <div class="dashboard-grid">
-                    <div class="dashboard-section">
-                        <h2>Manage User Accounts and Roles</h2>
-                        <a href="user_management.php" class="button">Manage Users</a>
-                    </div>
-                    <div class="dashboard-section">
-                        <h2>Manage Machines</h2>
-                        <a href="machine_management.php" class="button">Manage Machines</a>
-                    </div>
-                    <div class="dashboard-section">
-                        <h2>Factory Performance</h2>
-                        <div class="table-container">
-                            <?php
-                            // Your existing PHP code for factory performance table
-                            ?>
-                        </div>
-                    </div>
-                    <div class="dashboard-section">
-                        <h2>System Statistics</h2>
-                        <ul>
-                            <li>Number of Users: <?php echo $conn->query("SELECT COUNT(*) FROM users")->fetch_assoc()['COUNT(*)']; ?></li>
-                            <li>Number of Machines: <?php echo $conn->query("SELECT COUNT(*) FROM machines")->fetch_assoc()['COUNT(*)']; ?></li>
-                            <li>Number of Jobs: <?php echo $conn->query("SELECT COUNT(*) FROM jobs")->fetch_assoc()['COUNT(*)']; ?></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </main>
+if (isset($_POST['send_message'])) {
+    $senderId = $_SESSION['user_id'];
+    $receiverId = $_POST['receiver_id'];
+    $messageText = $_POST['message'];
+    $machineId = !empty($_POST['machine_id']) ? $_POST['machine_id'] : null;
+    $jobId = !empty($_POST['job_id']) ? $_POST['job_id'] : null;
+    $message->sendMessage($senderId, $receiverId, $messageText, $machineId, $jobId);
+}
+
+$messages = $message->getMessages($_SESSION['user_id']);
+
+?>
+
+<div class="dashboard-content">
+    <h1>Welcome, Admin <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
+    <div class="dashboard-grid">
+        <div class="dashboard-section">
+            <h2>Manage User Accounts and Roles</h2>
+            <a href="user_management.php" class="button">Manage Users</a>
+        </div>
+        <div class="dashboard-section">
+            <h2>Manage Machines</h2>
+            <a href="machine_management.php" class="button">Manage Machines</a>
+        </div>
+        <div class="dashboard-section">
+            <h2>Factory Performance</h2>
+            <!-- Add factory performance content here -->
+        </div>
+        <div class="dashboard-section">
+            <h2>System Statistics</h2>
+            <ul>
+                <li>Number of Users: <?php echo $conn->query("SELECT COUNT(*) FROM users")->fetch_assoc()['COUNT(*)']; ?></li>
+                <li>Number of Machines: <?php echo $conn->query("SELECT COUNT(*) FROM machines")->fetch_assoc()['COUNT(*)']; ?></li>
+                <li>Number of Jobs: <?php echo $conn->query("SELECT COUNT(*) FROM jobs")->fetch_assoc()['COUNT(*)']; ?></li>
+            </ul>
+        </div>
     </div>
-    <script src="scripts/admin_dashboard.js"></script>
-</body>
-</html>
+    
+    <div class="dashboard-section messaging-container">
+        <h2>Messaging</h2>
+        <div class="messaging-pane">
+            <div class="send-message-form">
+                <h3>Send Message</h3>
+                <form action="" method="post">
+                    <div class="form-group">
+                        <label for="receiver_id">Recipient:</label>
+                        <select name="receiver_id" id="receiver_id" required>
+                            <option value="">Select Recipient</option>
+                            <?php
+                            $sql = "SELECT id, username FROM users WHERE role IN ('manager', 'operator', 'auditor')";
+                            $result = $conn->query($sql);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value=\"" . $row['id'] . "\">" . htmlspecialchars($row['username']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="machine_id">Regarding Machine (optional):</label>
+                        <select name="machine_id" id="machine_id">
+                            <option value="">Select Machine</option>
+                            <?php
+                            $sql = "SELECT id, machine_name FROM machines";
+                            $result = $conn->query($sql);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value=\"" . $row['id'] . "\">" . htmlspecialchars($row['machine_name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="job_id">Regarding Job (optional):</label>
+                        <select name="job_id" id="job_id">
+                            <option value="">Select Job</option>
+                            <?php
+                            $sql = "SELECT job_id, job_name FROM jobs";
+                            $result = $conn->query($sql);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value=\"" . $row['job_id'] . "\">" . htmlspecialchars($row['job_name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea name="message" id="message" required placeholder="Type your message here..."></textarea>
+                    </div>
+                    <button type="submit" name="send_message" class="button">Send Message</button>
+                </form>
+            </div>
+
+            <div class="inbox">
+                <h3>Inbox</h3>
+                <?php
+                if (empty($messages)) {
+                    echo "<p>No messages in your inbox.</p>";
+                } else {
+                    foreach ($messages as $msg) {
+                        ?>
+                        <div class="message-container">
+                            <div class="message-header">
+                                <span class="message-sender">From: <?php echo htmlspecialchars($msg['sender_name']); ?></span>
+                                <span class="message-timestamp"><?php echo htmlspecialchars($msg['sent_at']); ?></span>
+                            </div>
+                            <div class="message-body">
+                                <?php echo htmlspecialchars($msg['message']); ?>
+                            </div>
+                            <?php if (isset($msg['machine_name'])): ?>
+                                <div class="message-details">
+                                    Regarding Machine: <?php echo htmlspecialchars($msg['machine_name']); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (isset($msg['job_name'])): ?>
+                                <div class="message-details">
+                                    Regarding Job: <?php echo htmlspecialchars($msg['job_name']); ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="message-footer">
+                                <?php if ($msg['read_at'] === null): ?>
+                                    <button class="button mark-as-read-button" data-message-id="<?php echo $msg['id']; ?>">Mark as Read</button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                }
+                ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include 'templates/admin_footer.php'; ?>

@@ -1,4 +1,5 @@
 <?php
+// operator management.php
 session_start();
 include 'db_connection.php';
 

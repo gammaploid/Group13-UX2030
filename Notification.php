@@ -1,4 +1,5 @@
 <?php
+// Notification.php
 namespace App\Notification;
 use mysqli_sql_exception;
 include 'db_connection.php';

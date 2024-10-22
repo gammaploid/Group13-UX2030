@@ -1,4 +1,5 @@
 <?php
+// import_csv.php
 include 'db_connection.php';
 
 $file = fopen("factory_logs.csv", "r");

@@ -8,14 +8,22 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 include 'db_connection.php';
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
-$sql = "DELETE FROM users WHERE id=$id";
+    $sql = "DELETE FROM users WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
 
-if ($conn->query($sql) === TRUE) {
-    header("Location: user_management.php?success=User deleted successfully");
+    if ($stmt->execute()) {
+        header("Location: user_management.php?success=User deleted successfully");
+    } else {
+        header("Location: user_management.php?error=Error deleting user: " . $conn->error);
+    }
+
+    $stmt->close();
 } else {
-    header("Location: user_management.php?error=Error deleting user: " . $conn->error);
+    header("Location: user_management.php");
 }
 
 $conn->close();
