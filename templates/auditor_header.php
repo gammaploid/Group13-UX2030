@@ -33,7 +33,7 @@ $unreadNotifications = $notification->getUnreadNotifications($_SESSION['user_id'
             <nav>
                 <ul>
                     <li><a href="auditor_dashboard.php" <?php echo ($page == 'auditor_dashboard') ? 'class="active"' : ''; ?>>Dashboard</a></li>
-                    <li><a href="audit_logs.php" <?php echo ($page == 'audit_logs') ? 'class="active"' : ''; ?>>Audit Logs</a></li>
+                    <li><a href="audit_reports.php" <?php echo ($page == 'audit_logs') ? 'class="active"' : ''; ?>>Audit Logs</a></li>
                     <li><a href="performance_reports.php" <?php echo ($page == 'performance_reports') ? 'class="active"' : ''; ?>>Performance Reports</a></li>
                 </ul>
             </nav>

@@ -78,14 +78,15 @@ if ($table_exists) {
                     <?php endfor; ?>
                 </div>
                 
-                <a href="audit_logs.php" class="button">View All Logs</a>
+                <a href="audit_reports.php" class="button">View All Logs</a>
             <?php else: ?>
                 <p>No audit logs available at this time.</p>
             <?php endif; ?>
+            <a href="audit_reports.php" class="button">Generate Report</a>
         </div>
         <div class="dashboard-section">
             <h2>Performance Reports</h2>
-            <a href="performance_reports.php" class="button">Generate Reports</a>
+            <a href="performance_reports.php" class="button">Generate Report</a>
         </div>
         <div class="dashboard-section">
             <h2>System Statistics</h2>

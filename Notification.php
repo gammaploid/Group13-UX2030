@@ -57,7 +57,5 @@ if (!empty($unreadNotifications)) {
          <!-- HTML code here -->
      </div>
      <?php
- } else {
-     echo "No unread notifications.";
- }
+ } 
  ?>

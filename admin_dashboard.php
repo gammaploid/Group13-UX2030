@@ -32,7 +32,7 @@ $messages = $message->getMessages($_SESSION['user_id']);
     <h1>Welcome, Admin <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
     <div class="dashboard-grid">
         <div class="dashboard-section">
-            <h2>Manage User Accounts and Roles</h2>
+            <h2>Manage User Accounts</h2>
             <a href="user_management.php" class="button">Manage Users</a>
         </div>
         <div class="dashboard-section">
@@ -41,7 +41,7 @@ $messages = $message->getMessages($_SESSION['user_id']);
         </div>
         <div class="dashboard-section">
             <h2>Factory Performance</h2>
-            <!-- Add factory performance content here -->
+            
         </div>
         <div class="dashboard-section">
             <h2>System Statistics</h2>
