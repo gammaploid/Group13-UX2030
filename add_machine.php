@@ -1,14 +1,10 @@
 <?php
-// add_machine.php
-session_start();
-include 'db_connection.php';
+$page = 'machine_management';
+$page_title = 'Add Machine';
+$back_url = 'machine_management.php';
+include 'templates/admin_header.php';
 
-// Authentication check for admins only
-if ($_SESSION['role'] !== 'admin') {
-    header("Location: login.php?error=access_denied");
-    exit();
-}
-
+// Process form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $machine_name = $conn->real_escape_string($_POST['machine_name']);
 
@@ -17,32 +13,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: machine_management.php?success=Machine added successfully");
         exit();
     } else {
-        header("Location: machine_management.php?error=Error adding machine: " . $conn->error);
-        exit();
+        $error = "Error adding machine: " . $conn->error;
     }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Machine</title>
-    <link rel="stylesheet" type="text/css" href="global.css">
-    <link rel="stylesheet" type="text/css" href="styles/machine_management.css">
-</head>
-<body>
-    <div class="container" style="background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], 
+    select {
+        width: 100%; /* Full width */
+        max-width: 500px; /* Max width */
+        height: 40px; /* Height */
+        font-size: 16px; /* Font size */
+        padding: 10px; /* Padding */
+        box-sizing: border-box; /* Include padding in width/height */
+        border: 1px solid #ddd; /* Border style */
+        border-radius: 5px; /* Rounded corners */
+    }
+
+    input[type="text"]:focus {
+        border-color: #09a225; /* Border color on focus */
+        outline: none; /* Remove outline */
+        box-shadow: 0 0 0 2px rgba(9, 162, 37, 0.1); /* Shadow effect */
+    }
+
+    .form-actions .button {
+        padding: 10px 20px; /* Button padding */
+        font-size: 16px; /* Button font size */
+    }
+</style>
+
+<div class="dashboard-content">
+    <div class="dashboard-section">
         <h2>Add Machine</h2>
-        <form action="add_machine.php" method="post">
+        <?php if (isset($error)): ?>
+            <div class="message-container error">
+                <?php echo $error; ?>
+            </div>
+        <?php endif; ?>
+        
+        <form action="add_machine.php" method="post" class="admin-form">
             <div class="form-group">
                 <label for="machine_name">Machine Name:</label>
                 <input type="text" id="machine_name" name="machine_name" required>
             </div>
-            <button type="submit" class="button">Add Machine</button>
+            <div class="form-actions">
+                <button type="submit" class="button">Add Machine</button>
+                <a href="machine_management.php" class="button" style="background-color: #6c757d;">Cancel</a>
+            </div>
         </form>
-        <a href="machine_management.php" class="button">Back to Machine Management</a>
     </div>
-</body>
-</html>
+</div>
+
+<?php include 'templates/admin_footer.php'; ?>

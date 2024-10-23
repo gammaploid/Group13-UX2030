@@ -1,141 +1,175 @@
 <?php
 // machine_management.php
 session_start();
-include 'db_connection.php';
+require_once 'db_connection.php';
 require_once 'Notification.php';
-
 use App\Notification\Notification;
 
-// Authentication check for admins only
-if ($_SESSION['role'] !== 'admin') {
-    header("Location: login.php?error=access_denied");
-    exit();
+$page = 'machine_management';
+$page_title = 'Machine Management';
+$back_url = 'admin_dashboard.php';
+
+// Handle all status updates before including header
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $machineId = $_GET['id'];
+    $newStatus = $_GET['action'];
+    
+    if (in_array($newStatus, ['operational', 'non-operational'])) {
+        $sql = "UPDATE machines SET operational_status = ?, error_code = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $errorCode = $newStatus === 'non-operational' ? 'E001' : NULL;
+        $stmt->bind_param("ssi", $newStatus, $errorCode, $machineId);
+        $stmt->execute();
+
+        $notification = new Notification($conn);
+        $notificationId = $notification->createNotification(
+            'machine_status', 
+            "Machine $machineId is now $newStatus"
+        );
+        $notification->addRecipient($notificationId, $_SESSION['user_id']);
+
+        // Redirect to remove the action from the URL
+        header("Location: machine_management.php");
+        exit();
+    }
 }
 
-// Handle machine status update
-if (isset($_GET['action']) && $_GET['action'] == 'update_status' && isset($_GET['log_id'])) {
-    $logId = $_GET['log_id'];
-    $sql = "UPDATE machines SET operational_status = 'non-operational' WHERE log_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $logId);
-    $stmt->execute();
-
-    $notification = new Notification($conn);
-    $notificationId = $notification->createNotification('machine_downtime', "Machine $logId is non-operational");
-    $notification->addRecipient($notificationId, $_SESSION['user_id']);
-
-    // Redirect to remove the action from the URL
-    header("Location: machine_management.php");
-    exit();
-}
+include 'templates/admin_header.php';
 
 // Set the number of machines to display per page
 $limit = 15;
-
-// Determine the current page
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $limit;
 
 // Search query
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 
-// SQL query to retrieve machines with pagination and search
-$sql = "SELECT * FROM machines WHERE machine_name LIKE '%$search%' LIMIT $offset, $limit";
-$result = $conn->query($sql);
-
-// Get the total number of machines for pagination
-$total_sql = "SELECT COUNT(*) as total FROM machines WHERE machine_name LIKE '%$search%'";
-$total_result = $conn->query($total_sql);
-$total_row = $total_result->fetch_assoc();
-$total_machines = $total_row['total'];
+// Get total number of machines for pagination
+$total_sql = "SELECT COUNT(*) as total FROM machines WHERE machine_name LIKE ?";
+$stmt = $conn->prepare($total_sql);
+$search_param = "%$search%";
+$stmt->bind_param("s", $search_param);
+$stmt->execute();
+$total_machines = $stmt->get_result()->fetch_assoc()['total'];
 $total_pages = ceil($total_machines / $limit);
 
+// Get machines for current page
+$sql = "SELECT * FROM machines WHERE machine_name LIKE ? LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("sii", $search_param, $limit, $offset);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Machine Management</title>
-    <link rel="stylesheet" type="text/css" href="styles/global.css">
+    <!-- ... other head content ... -->
+    <script src="scripts/machine_management.js"></script>
     <link rel="stylesheet" type="text/css" href="styles/machine_management.css">
 </head>
-<body>
-    
+
+<div class="dashboard-content">
     <h1>Machine Management</h1>
-    <div class="container">
-        <a href="add_machine.php" class="button">Add Machine</a>
-        <form action="machine_management.php" method="get">
-            <label for="search">Search:</label>
-            <input type="text" id="search" name="search" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>">
-            <button type="submit">Search</button>
-        </form>
-    </div>
+    
+    <div class="dashboard-section">
+        <div class="actions-container">
+            <a href="add_machine.php" class="button">Add Machine</a>
+            <form action="machine_management.php" method="get" class="search-form">
+                <input type="text" id="search" name="search" 
+                       value="<?php echo htmlspecialchars($search); ?>" 
+                       placeholder="Search machines...">
+                <button type="submit" class="button">Search</button>
+            </form>
+        </div>
 
-    <table>
-        <tr>
-            <th>Machine ID</th>
-            <th>Machine Name</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-        <?php while ($row = $result->fetch_assoc()) { ?>
+       <div class="table-responsive">
+    <table class="data-table">
+        <thead>
             <tr>
-                <td><?php echo htmlspecialchars($row['log_id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                <td><?php echo htmlspecialchars($row['machine_name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                <td><?php echo htmlspecialchars($row['operational_status'], ENT_QUOTES, 'UTF-8'); ?></td>
-                <td>
-                    <a href="edit_machine.php?log_id=<?php echo htmlspecialchars($row['log_id'], ENT_QUOTES, 'UTF-8'); ?>" class="button">Edit</a>
-                    <a href="delete_machine.php?log_id=<?php echo htmlspecialchars($row['log_id'], ENT_QUOTES, 'UTF-8'); ?>" onclick="return confirm('Are you sure?');" class="button">Delete</a>
-                    <?php if ($row['operational_status'] != 'non-operational') { ?>
-                        <a href="machine_management.php?action=update_status&log_id=<?php echo htmlspecialchars($row['log_id'], ENT_QUOTES, 'UTF-8'); ?>" onclick="return confirm('Mark non-operational?');" class="button">Mark Non-Operational</a>
-                    <?php } ?>
-                </td>
+                <th>ID</th>
+                <th>Machine Name</th>
+                <th>Status</th>
+                <th>Power (kW)</th>
+                <th>Error Code</th>
+                <th>Maintenance Log</th>
+                <th>Actions</th>
             </tr>
-        <?php } ?>
+        </thead>
+        <tbody>
+            <?php while ($row = $result->fetch_assoc()) { ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['id'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars($row['machine_name'] ?? ''); ?></td>
+                    <td class="status-cell <?php echo htmlspecialchars($row['operational_status'] ?? ''); ?>">
+                        <?php echo htmlspecialchars($row['operational_status'] ?? ''); ?>
+                    </td>
+                    <td>
+                        <?php 
+                            echo isset($row['power_consumption']) 
+                                ? number_format($row['power_consumption'], 2) 
+                                : '-'; 
+                        ?>
+                    </td>
+                    <td><?php echo htmlspecialchars($row['error_code'] ?? '-'); ?></td>
+                    <td class="maintenance-log">
+                        <?php 
+                            if (!empty($row['maintenance_log'])) {
+                                echo '<div class="log-content">' . 
+                                     htmlspecialchars($row['maintenance_log']) . 
+                                     '</div>';
+                            } else {
+                                echo '-';
+                            }
+                        ?>
+                    </td>
+                    <td class="actions">
+                        <a href="edit_machine.php?id=<?php echo $row['id'] ?? ''; ?>" 
+                           class="button edit-button">Edit</a>
+                        <?php if (($row['operational_status'] ?? '') == 'operational') { ?>
+                            <button class="button toggle-status" 
+                                    data-id="<?php echo $row['id'] ?? ''; ?>"
+                                    data-action="non-operational">
+                                Mark Non-Operational
+                            </button>
+                        <?php } else { ?>
+                            <button class="button toggle-status operational" 
+                                    data-id="<?php echo $row['id'] ?? ''; ?>"
+                                    data-action="operational">
+                                Mark Operational
+                            </button>
+                        <?php } ?>
+                    </td>
+                </tr>
+            <?php } ?>
+        </tbody>
     </table>
-    <div class="pagination">
-    <?php
-    $page_range = 5; // Number of pages to show before and after the current page
-    $start_page = max(1, $current_page - $page_range);
-    $end_page = min($total_pages, $current_page + $page_range);
-
-    // Previous button
-    if ($current_page > 1) {
-        echo "<button onclick=\"location.href='machine_management.php?page=".($current_page-1)."&search=".urlencode($search)."'\">&laquo; Previous</button> ";
-    }
-
-    // First page
-    if ($start_page > 1) {
-        echo "<button onclick=\"location.href='machine_management.php?page=1&search=".urlencode($search)."'\">1</button> ";
-        if ($start_page > 2) {
-            echo "<span>...</span> ";
-        }
-    }
-
-    // Page numbers
-    for ($i = $start_page; $i <= $end_page; $i++) {
-        if ($i == $current_page) {
-            echo "<span class='active'>$i</span> ";
-        } else {
-            echo "<button onclick=\"location.href='machine_management.php?page=$i&search=".urlencode($search)."'\">$i</button> ";
-        }
-    }
-
-    // Last page
-    if ($end_page < $total_pages) {
-        if ($end_page < $total_pages - 1) {
-            echo "<span>...</span> ";
-        }
-        echo "<button onclick=\"location.href='machine_management.php?page=$total_pages&search=".urlencode($search)."'\">$total_pages</button> ";
-    }
-
-    // Next button
-    if ($current_page < $total_pages) {
-        echo "<button onclick=\"location.href='machine_management.php?page=".($current_page+1)."&search=".urlencode($search)."'\">Next &raquo;</button>";
-    }
-    ?>
+</div>
+    </div>
 </div>
 
-</body>
-</html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusButtons = document.querySelectorAll('.toggle-status');
+    
+    statusButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const machineId = this.getAttribute('data-id');
+            const action = this.getAttribute('data-action');
+            let message;
+            
+            if (action === 'non-operational') {
+                message = 'Machine marked as non-operational. Refresh page to see current status.';
+            } else {
+                message = 'Machine marked as operational. Refresh page to see current status.';
+            }
+            
+            // Show confirmation popup
+            if (confirm(message)) {
+                // Redirect to update status
+                window.location.href = `machine_management.php?action=${action}&id=${machineId}`;
+            }
+        });
+    });
+});
+</script>
+
+<?php include 'templates/admin_footer.php'; ?>

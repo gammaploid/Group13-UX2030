@@ -18,16 +18,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $notification = new Notification($conn);
 $unreadNotifications = $notification->getUnreadNotifications($_SESSION['user_id']);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . ' - SMD Admin' : 'SMD Admin'; ?></title>
     <link rel="stylesheet" href="styles/admin_dashboard.css">
-    
+    <?php echo isset($additionalStyles) ? $additionalStyles : ''; ?>
 </head>
+
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
@@ -37,6 +38,10 @@ $unreadNotifications = $notification->getUnreadNotifications($_SESSION['user_id'
                     <li><a href="admin_dashboard.php" <?php echo ($page == 'admin_dashboard') ? 'class="active"' : ''; ?>>Dashboard</a></li>
                     <li><a href="machine_management.php" <?php echo ($page == 'machine_management') ? 'class="active"' : ''; ?>>Machine Management</a></li>
                     <li><a href="user_management.php" <?php echo ($page == 'user_management') ? 'class="active"' : ''; ?>>User Management</a></li>
+                    <li><a href="factory_performance.php" <?php echo ($page == 'factory_performance') ? 'class="active"' : ''; ?>>Factory Performance</a></li>
+                    <li><a href="logout.php">Logout</a></li>
+                    
+
                 </ul>
             </nav>
         </aside>

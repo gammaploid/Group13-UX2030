@@ -2,7 +2,6 @@
 // Notification.php
 namespace App\Notification;
 use mysqli_sql_exception;
-include 'db_connection.php';
 
 class Notification {
     private $conn;
@@ -31,7 +30,7 @@ class Notification {
             $sql = "SELECT nr.notification_id, n.* 
                     FROM notification_recipients nr
                     JOIN notifications n ON nr.notification_id = n.id
-                    WHERE nr.user_id =? AND nr.read_at IS NULL";
+                    WHERE nr.user_id = ? AND nr.read_at IS NULL";
 
             $stmt = $this->conn->prepare($sql);
             $stmt->bind_param("i", $userId);
@@ -45,17 +44,3 @@ class Notification {
         }
     }
 }
-
-$notification = new Notification($conn);
-// Get notifications for the current user
-$userId = $_SESSION['user_id'];
-$unreadNotifications = $notification->getUnreadNotifications($userId);
-// Display notifications
-if (!empty($unreadNotifications)) {
-    ?>
-     <div class="notification-pane">
-         <!-- HTML code here -->
-     </div>
-     <?php
- } 
- ?>

@@ -244,6 +244,16 @@ function generatePerformanceReport($conn, $start_date, $end_date) {
     return $html;
 }
 
+function generateFactoryPerformanceReport($conn, $start_date, $end_date) {
+    $html = '<h1 style="color: #4a69bd;">Factory Performance Report</h1>';
+    $html .= '<h2 style="color: #666;">Period: ' . $start_date . ' to ' . $end_date . '</h2>';
+    
+    // Add your machine performance data
+    $html .= '<h3>Machine Performance</h3>';
+    // Add your SQL queries and table generation here similar to the main page
+    
+    return $html;
+}
 
 // gen report switch
 switch ($_POST['report_type']) {
@@ -262,6 +272,11 @@ switch ($_POST['report_type']) {
     case 'performance':
         $content = generatePerformanceReport($conn, $_POST['start_date'], $_POST['end_date']);
         break;    
+    case 'factory_performance':
+        $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : date('Y-m-d', strtotime('-7 days'));
+        $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : date('Y-m-d');
+        $content = generateFactoryPerformanceReport($conn, $start_date, $end_date);
+        break;
     default:
         $content = '<h1>Invalid report type</h1>';
         

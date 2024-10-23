@@ -1,11 +1,8 @@
 <?php
-// Define page variables
-$page = 'edit_user';
+$page = 'user_management';
 $page_title = 'Edit User';
 $back_url = 'user_management.php';
-
 include 'templates/admin_header.php';
-include 'db_connection.php';
 
 $user_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
@@ -15,14 +12,16 @@ if ($user_id === 0) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $conn->real_escape_string($_POST["username"]);
-    $email = $conn->real_escape_string($_POST["email"]);
-    $phone_number = $conn->real_escape_string($_POST["phone_number"]);
-    $role = $conn->real_escape_string($_POST["user_role"]);
+    $username = $conn->real_escape_string($_POST["username"] ?? '');
+    $email = $conn->real_escape_string($_POST["email"] ?? '');
+    $phone_number = $conn->real_escape_string($_POST["phone_number"] ?? '');
+    $role = $conn->real_escape_string($_POST["user_role"] ?? '');
 
-    $sql = "UPDATE users SET username = '$username', email = '$email', phone_number = '$phone_number', role = '$role' WHERE id = $user_id";
+    $sql = "UPDATE users SET username = ?, email = ?, phone_number = ?, role = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssi", $username, $email, $phone_number, $role, $user_id);
     
-    if ($conn->query($sql) === TRUE) {
+    if ($stmt->execute()) {
         header("Location: user_management.php?success=User updated successfully");
         exit();
     } else {
@@ -30,8 +29,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$sql = "SELECT * FROM users WHERE id = $user_id";
-$result = $conn->query($sql);
+$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
     header("Location: user_management.php?error=User not found");
@@ -41,26 +42,57 @@ if ($result->num_rows === 0) {
 $user = $result->fetch_assoc();
 ?>
 
+
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], 
+    input[type="password"], 
+    input[type="email"], 
+    select {
+        width: 100%;
+        max-width: 300px; 
+        height: 40px; 
+        font-size: 16px; 
+        padding: 10px; 
+        box-sizing: border-box; 
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .form-actions .button {
+        padding: 10px 20px; 
+        font-size: 16px; 
+    }
+</style>
+
 <div class="dashboard-content">
-    <h1 class="page-title"><?php echo $page_title; ?></h1>
+    <div class="dashboard-section">
+        <h2>Edit User</h2>
+        
+        <?php if (isset($error)): ?>
+            <div class="message-container error">
+                <?php echo $error; ?>
+            </div>
+        <?php endif; ?>
 
-    <?php if (isset($error)) { ?>
-        <p class="error"><?php echo $error; ?></p>
-    <?php } ?>
-
-    <div class="form-container">
         <form action="edit_user.php?id=<?php echo $user_id; ?>" method="post" class="admin-form">
             <div class="form-group">
                 <label for="username">Username:</label>
-                <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+                <input type="text" id="username" name="username" 
+                       value="<?php echo htmlspecialchars($user['username']); ?>" required>
             </div>
             <div class="form-group">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                <input type="email" id="email" name="email" 
+                       value="<?php echo htmlspecialchars($user['email']); ?>" required>
             </div>
             <div class="form-group">
                 <label for="phone_number">Phone:</label>
-                <input type="text" id="phone_number" name="phone_number" value="<?php echo htmlspecialchars($user['phone_number']); ?>">
+                <input type="text" id="phone_number" name="phone_number" 
+                       value="<?php echo htmlspecialchars($user['phone_number']); ?>">
             </div>
             <div class="form-group">
                 <label for="user_role">Role:</label>
@@ -71,13 +103,14 @@ $user = $result->fetch_assoc();
                     <option value="auditor" <?php echo $user['role'] === 'auditor' ? 'selected' : ''; ?>>Auditor</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-actions">
                 <button type="submit" class="button">Update User</button>
+                <button type="button" class="button" 
+                        onclick="if(confirm('Are you sure you want to delete this user?')) 
+                                window.location.href='delete_user.php?id=<?php echo $user_id; ?>'"
+                        style="background-color: #dc3545;">Delete User</button>
+                <a href="user_management.php" class="button" style="background-color: #6c757d;">Cancel</a>
             </div>
-        </form>
-        <form action="delete_user.php" method="post" onsubmit="return confirm('Are you sure you want to delete this user?');" class="delete-form">
-            <input type="hidden" name="id" value="<?php echo $user_id; ?>">
-            <button type="submit" class="button delete-button">Delete User</button>
         </form>
     </div>
 </div>

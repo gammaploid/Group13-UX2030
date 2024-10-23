@@ -44,6 +44,11 @@ if ($table_exists) {
 
 ?>
 
+<head>
+<link rel="stylesheet" type="text/css" href="styles/auditor_dashboard.css">
+<script src="scripts/auditor_dashboard.js"></script>
+</head>
+
 <div class="dashboard-content">
     <h1>Welcome, Auditor <?php echo htmlspecialchars($_SESSION['username']); ?></h1>
     <div class="dashboard-grid">
