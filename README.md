@@ -18,7 +18,7 @@ The Smart Manufacturing Dashboard (SMD) is a web-based platform designed to moni
 ## Features
 - **Holistic View:** Overall factory performance with key indicators and interactive design elements 
 - **Alert System:** Notifications for critical events or anomalies
-- **Messaging System:** Inter-user messaging with machine and job appending
+- **Messaging System:** Inter-user messaging with machine and job/machine appending to sent message
 - **Reporting:** PDF report generation 
 
 ## Stacks Used
