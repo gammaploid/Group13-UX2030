@@ -47,7 +47,7 @@ The Smart Manufacturing Dashboard (SMD) is a web-based platform designed to moni
    - For **Mac**, install and run **MAMP**.
    - Lunch Apache webserver
    - Access via https://localhost:8888
-   - register or access via exisiting credintials (admin username: a, password: a, manger username: m, password, a, auditor username: audit, password: 1, opreator username: opp, password: a)
+   - register or access via exisiting credintials (admin username: a, password: a, manger username: m, password: a, auditor username: audit, password: 1, opreator username: opp, password: a)
 
 
 ## License 
