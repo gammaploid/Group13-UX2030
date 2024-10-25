@@ -5,7 +5,7 @@ $back_url = 'admin_dashboard.php';
 $additionalStyles = '<link rel="stylesheet" href="styles/factory_performance.css">';
 include 'templates/admin_header.php';
 // Get date range from URL parameters or set defaults
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-365 days')); // Changed to show last year
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 
 // Function to get machine performance data
@@ -32,15 +32,14 @@ function getMachinePerformance($conn, $start_date, $end_date) {
 
 // Function to get job statistics
 function getJobStatistics($conn, $start_date, $end_date) {
+
     $sql = "SELECT 
         COUNT(*) as total_jobs,
-        COUNT(CASE WHEN end_time IS NOT NULL THEN 1 END) as completed_jobs,
-        COALESCE(AVG(NULLIF(TIMESTAMPDIFF(HOUR, start_time, IFNULL(end_time, NOW())), 0)), 0) as avg_duration
-    FROM jobs
-    WHERE start_time BETWEEN ? AND ?";
+        COUNT(CASE WHEN end_date IS NOT NULL THEN 1 END) as completed_jobs,
+        COALESCE(AVG(NULLIF(TIMESTAMPDIFF(HOUR, start_date, IFNULL(end_date, NOW())), 0)), 0) as avg_duration
+    FROM jobs";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $start_date, $end_date);
     $stmt->execute();
     return $stmt->get_result()->fetch_assoc();
 }

@@ -1,5 +1,4 @@
 <?php
-// auditor_dashboard.php
 $page = 'auditor_dashboard';
 $page_title = 'Auditor Dashboard';
 include 'templates/auditor_header.php';

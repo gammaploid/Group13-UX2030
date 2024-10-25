@@ -1,5 +1,5 @@
 <?php
-// login.php
+
 session_start();
 include 'db_connection.php';
 
@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Login Logic
     $sql = "SELECT id, username, role, password FROM users WHERE username =?";
 
-    if ($stmt = $conn->prepare($sql)) {
+    if ($stmt = $conn->prepare("SELECT id, username, role, password FROM users WHERE username = ?")) {
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();

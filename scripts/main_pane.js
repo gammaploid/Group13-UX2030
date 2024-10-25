@@ -1,4 +1,4 @@
-// scripts/main_pane.js
+
 document.addEventListener('DOMContentLoaded', function() {
     const notificationIcon = document.getElementById('notificationIcon');
     const notificationList = document.getElementById('notificationList');

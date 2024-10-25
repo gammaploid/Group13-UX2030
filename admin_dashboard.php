@@ -1,3 +1,4 @@
+
 <?php
 $page = 'admin_dashboard';
 $page_title = 'Admin Dashboard';
@@ -310,3 +311,4 @@ function formatTimeAgo($seconds) {
 </div>
 
 <?php include 'templates/admin_footer.php'; ?>
+

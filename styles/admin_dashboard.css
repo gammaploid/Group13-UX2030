@@ -499,19 +499,19 @@ body, html {
 }
 
 .status-card h4 {
-    margin: 0 0 5px 0; /* Reduced from 10px */
-    font-size: 14px; /* Added to make header smaller */
+    margin: 0 0 5px 0;
+    font-size: 14px; 
 }
 
 
 .status-card .count {
-    font-size: 20px; /* Reduced from 24px */
+    font-size: 20px; 
     font-weight: bold;
     display: block;
 }
 
 .status-card .percentage {
-    font-size: 12px; /* Reduced from 14px */
+    font-size: 12px; 
     opacity: 0.9;
 }
 

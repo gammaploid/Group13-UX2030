@@ -21,12 +21,11 @@ if ($machine_id === 0) {
 $conn->begin_transaction();
 
 try {
-    // First delete related records in machine_logs
     $stmt = $conn->prepare("DELETE FROM machine_logs WHERE machine_id = ?");
     $stmt->bind_param("i", $machine_id);
     $stmt->execute();
     
-    // Then delete the machine
+    
     $stmt = $conn->prepare("DELETE FROM machines WHERE id = ?");
     $stmt->bind_param("i", $machine_id);
     $stmt->execute();

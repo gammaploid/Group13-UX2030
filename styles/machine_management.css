@@ -1,4 +1,4 @@
-/* styles/machine_management.css */
+
 .dashboard-section {
     background-color: white;
     border-radius: 8px;
@@ -140,7 +140,7 @@
 }
 
 .maintenance-log {
-    max-width: 200px; /* Adjust based on your needs */
+    max-width: 200px; 
 }
 
 .maintenance-log .log-content {

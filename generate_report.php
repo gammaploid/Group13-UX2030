@@ -1,12 +1,13 @@
 <?php
-// generate_report.php
-error_reporting(E_ERROR | E_PARSE);
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start output buffering
 ob_start();
+
 require_once('tcpdf/tcpdf.php');
 require_once('db_connection.php');
-
-// Clear any existing output
-ob_clean();
 
 if (!isset($_POST['report_type'])) {
     header('Location: audit_reports.php');
@@ -15,278 +16,381 @@ if (!isset($_POST['report_type'])) {
 
 // Create PDF class with custom Header and Footer
 class PDF extends TCPDF {
-    // Page header
     public function Header() {
-        // Logo
-        //$this->Image('path_to_logo.png', 10, 10, 30);
-        // Set font
         $this->SetFont('helvetica', 'B', 20);
-        // Title
         $this->Cell(0, 15, 'SMD System Report', 0, false, 'C', 0, '', 0, false, 'M', 'M');
     }
 
-    // Page footer
     public function Footer() {
-        // Position at 15 mm from bottom
         $this->SetY(-15);
-        // Set font
         $this->SetFont('helvetica', 'I', 8);
-        // Page number
         $this->Cell(0, 10, 'Page '.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
     }
 }
 
-// Create new PDF document
-$pdf = new PDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+try {
+    // Create new PDF document
+    $pdf = new PDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
-// Set document information
-$pdf->SetCreator('SMD System');
-$pdf->SetAuthor('SMD Admin');
-$pdf->SetTitle('SMD Report - ' . ucfirst($_POST['report_type']));
+    // Set document information
+    $pdf->SetCreator('SMD System');
+    $pdf->SetAuthor('SMD Admin');
+    $pdf->SetTitle('SMD Report - ' . ucfirst($_POST['report_type']));
 
-// Set header and footer fonts
-$pdf->setHeaderFont(Array('helvetica', '', 10));
-$pdf->setFooterFont(Array('helvetica', '', 8));
+    // Set header and footer fonts
+    $pdf->setHeaderFont(Array('helvetica', '', 10));
+    $pdf->setFooterFont(Array('helvetica', '', 8));
 
-// Set default monospaced font
-$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+    // Set default monospaced font
+    $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
-// Set margins
-$pdf->SetMargins(15, 15, 15);
-$pdf->SetHeaderMargin(5);
-$pdf->SetFooterMargin(10);
+    // Set margins
+    $pdf->SetMargins(15, 15, 15);
+    $pdf->SetHeaderMargin(5);
+    $pdf->SetFooterMargin(10);
 
-// Set auto page breaks
-$pdf->SetAutoPageBreak(TRUE, 15);
+    // Set auto page breaks
+    $pdf->SetAutoPageBreak(TRUE, 15);
 
-// Set image scale factor
-$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+    // Set image scale factor
+    $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
-// Set font
-$pdf->SetFont('helvetica', '', 10);
+    // Set font
+    $pdf->SetFont('helvetica', '', 10);
 
-// Add a page
-$pdf->AddPage();
+    // Add a page
+    $pdf->AddPage();
 
-// Get report content based on type
-$date_condition = '';
-if (!empty($_POST['date_from']) && !empty($_POST['date_to'])) {
-    $date_from = $conn->real_escape_string($_POST['date_from']);
-    $date_to = $conn->real_escape_string($_POST['date_to']);
-    $date_condition = " WHERE timestamp BETWEEN '$date_from' AND '$date_to'";
-}
-
-// Report Generation Functions
-function generateMachinesReport($conn, $date_condition) {
-    $html = '<h1 style="color: #4a69bd;">Machines Report</h1>';
-    $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
-    
-    // Current machine status
-    $sql = "SELECT * FROM machines";
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        $html .= '<h3>Machine Status Overview</h3>';
-        $html .= '<table border="1" cellpadding="5">
-                    <tr style="background-color: #f5f5f5;">
-                        <th>Machine ID</th>
-                        <th>Machine Name</th>
-                        <th>Status</th>
-                    </tr>';
-        
-        while ($row = $result->fetch_assoc()) {
-            $html .= '<tr>
-                        <td>'.$row['id'].'</td>
-                        <td>'.$row['machine_name'].'</td>
-                        <td>'.$row['operational_status'].'</td>
-                    </tr>';
+    // Get report content based on type
+    $date_condition = '';
+    if (isset($_POST['date_from']) && isset($_POST['date_to'])) {
+        $date_from = $conn->real_escape_string($_POST['date_from']);
+        $date_to = $conn->real_escape_string($_POST['date_to']);
+        if (!empty($date_from) && !empty($date_to)) {
+            $date_condition = " WHERE timestamp BETWEEN '$date_from' AND '$date_to'";
         }
-        $html .= '</table>';
     }
-    
-    return $html;
-}
 
-function generateUsersReport($conn) {
-    $html = '<h1 style="color: #4a69bd;">Users Report</h1>';
-    $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
-    
-    $sql = "SELECT id, username, role, email FROM users";
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        $html .= '<table border="1" cellpadding="5">
-                    <tr style="background-color: #f5f5f5;">
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Email</th>
-                    </tr>';
+    function generateMachinesReport($conn, $date_condition) {
+        $html = '<h1 style="color: #4a69bd;">Machines Report</h1>';
+        $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
         
-        while ($row = $result->fetch_assoc()) {
-            $html .= '<tr>
-                        <td>'.$row['id'].'</td>
-                        <td>'.$row['username'].'</td>
-                        <td>'.$row['role'].'</td>
-                        <td>'.$row['email'].'</td>
-                    </tr>';
+        $sql = "SELECT * FROM machines";
+        $result = $conn->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<h3>Machine Status Overview</h3>';
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Machine ID</th>
+                            <th>Machine Name</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['id']) . '</td>
+                            <td>' . htmlspecialchars($row['machine_name']) . '</td>
+                            <td>' . htmlspecialchars($row['operational_status']) . '</td>
+                            <td>' . (isset($row['last_updated']) ? htmlspecialchars($row['last_updated']) : '-') . '</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        } else {
+            $html .= '<p>No machines found in the database.</p>';
         }
-        $html .= '</table>';
-    }
-    
-    return $html;
-}
-
-function generateJobsReport($conn, $date_condition) {
-    $html = '<h1 style="color: #4a69bd;">Jobs Report</h1>';
-    $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
-    
-    $sql = "SELECT j.*, u.username as operator_name, m.machine_name 
-            FROM jobs j 
-            LEFT JOIN users u ON j.operator_id = u.id 
-            LEFT JOIN machines m ON j.machine_id = m.id" . 
-            ($date_condition ? str_replace('timestamp', 'start_time', $date_condition) : '');
-    
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        $html .= '<table border="1" cellpadding="5">
-                    <tr style="background-color: #f5f5f5;">
-                        <th>Job ID</th>
-                        <th>Job Name</th>
-                        <th>Operator</th>
-                        <th>Machine</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                    </tr>';
         
-        while ($row = $result->fetch_assoc()) {
-            $html .= '<tr>
-                        <td>'.$row['job_id'].'</td>
-                        <td>'.$row['job_name'].'</td>
-                        <td>'.$row['operator_name'].'</td>
-                        <td>'.$row['machine_name'].'</td>
-                        <td>'.$row['start_time'].'</td>
-                        <td>'.$row['end_time'].'</td>
-                    </tr>';
+        return $html;
+    }
+
+    function generateUsersReport($conn) {
+        $html = '<h1 style="color: #4a69bd;">Users Report</h1>';
+        $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
+        
+        $sql = "SELECT id, username, role, email FROM users";
+        $result = $conn->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['id']) . '</td>
+                            <td>' . htmlspecialchars($row['username']) . '</td>
+                            <td>' . htmlspecialchars($row['role']) . '</td>
+                            <td>' . htmlspecialchars($row['email']) . '</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        } else {
+            $html .= '<p>No users found in the database.</p>';
         }
-        $html .= '</table>';
-    }
-    
-    return $html;
-}
-
-function generateMessagesReport($conn, $date_condition) {
-    $html = '<h1 style="color: #4a69bd;">Messages Report</h1>';
-    $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
-    
-    $sql = "SELECT m.*, 
-            sender.username as sender_name, 
-            receiver.username as receiver_name,
-            mac.machine_name,
-            j.job_name
-            FROM messages m
-            JOIN users sender ON m.sender_id = sender.id
-            JOIN users receiver ON m.receiver_id = receiver.id
-            LEFT JOIN machines mac ON m.machine_id = mac.id
-            LEFT JOIN jobs j ON m.job_id = j.job_id" .
-            ($date_condition ? str_replace('timestamp', 'sent_at', $date_condition) : '');
-    
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        $html .= '<table border="1" cellpadding="5">
-                    <tr style="background-color: #f5f5f5;">
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Message</th>
-                        <th>Regarding Machine</th>
-                        <th>Regarding Job</th>
-                        <th>Sent At</th>
-                        <th>Read At</th>
-                    </tr>';
         
-        while ($row = $result->fetch_assoc()) {
-            $html .= '<tr>
-                        <td>'.$row['sender_name'].'</td>
-                        <td>'.$row['receiver_name'].'</td>
-                        <td>'.$row['message'].'</td>
-                        <td>'.(isset($row['machine_name']) ? $row['machine_name'] : '-').'</td>
+        return $html;
+    }
 
-                        <td>'.(isset($row['job_name']) ? $row['job_name'] : '-').'</td>
-                        <td>'.$row['sent_at'].'</td>
-                        <td>'.(isset($row['read_at']) ? $row['read_at'] : 'Unread').'</td>
-
-                    </tr>';
+    function generateJobsReport($conn, $date_condition) {
+        $html = '<h1 style="color: #4a69bd;">Jobs Report</h1>';
+        $html .= '<h2 style="color: #666;">Generated on: ' . date('Y-m-d H:i:s') . '</h2>';
+        
+        $sql = "SELECT j.*, u.username as operator_name, m.machine_name 
+                FROM jobs j 
+                LEFT JOIN users u ON j.operator_id = u.id 
+                LEFT JOIN machines m ON j.machine_id = m.id" . 
+                ($date_condition ? str_replace('timestamp', 'start_time', $date_condition) : '');
+        
+        $result = $conn->query($sql);
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Job ID</th>
+                            <th>Job Name</th>
+                            <th>Operator</th>
+                            <th>Machine</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['job_id']) . '</td>
+                            <td>' . htmlspecialchars($row['job_name']) . '</td>
+                            <td>' . htmlspecialchars($row['operator_name']) . '</td>
+                            <td>' . htmlspecialchars($row['machine_name']) . '</td>
+                            <td>' . htmlspecialchars($row['start_time']) . '</td>
+                            <td>' . (isset($row['end_time']) ? htmlspecialchars($row['end_time']) : '-') . '</td>
+                            <td>' . htmlspecialchars($row['status']) . '</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        } else {
+            $html .= '<p>No jobs found for the specified period.</p>';
         }
-        $html .= '</table>';
-    }
-    
-    return $html;
-}
-
-function generatePerformanceReport($conn, $start_date, $end_date) {
-    $html = '<h1 style="color: #4a69bd;">Performance Report</h1>';
-    $html .= '<h2 style="color: #666;">Period: ' . $start_date . ' to ' . $end_date . '</h2>';
-    
-    // Add machine performance table
-    $html .= '<h3>Machine Performance</h3>';
-    // Add your machine performance query and table generation here
-    
-    // Add job statistics
-    $html .= '<h3>Job Statistics</h3>';
-    // Add your job statistics query and presentation here
-    
-    // Add operator performance table
-    $html .= '<h3>Operator Performance</h3>';
-    // Add your operator performance query and table generation here
-    
-    return $html;
-}
-
-function generateFactoryPerformanceReport($conn, $start_date, $end_date) {
-    $html = '<h1 style="color: #4a69bd;">Factory Performance Report</h1>';
-    $html .= '<h2 style="color: #666;">Period: ' . $start_date . ' to ' . $end_date . '</h2>';
-    
-    // Add your machine performance data
-    $html .= '<h3>Machine Performance</h3>';
-    // Add your SQL queries and table generation here similar to the main page
-    
-    return $html;
-}
-
-// gen report switch
-switch ($_POST['report_type']) {
-    case 'machines':
-        $content = generateMachinesReport($conn, $date_condition);
-        break;
-    case 'users':
-        $content = generateUsersReport($conn);
-        break;
-    case 'jobs':
-        $content = generateJobsReport($conn, $date_condition);
-        break;
-    case 'messages':
-        $content = generateMessagesReport($conn, $date_condition);
-        break;
-    case 'performance':
-        $content = generatePerformanceReport($conn, $_POST['start_date'], $_POST['end_date']);
-        break;    
-    case 'factory_performance':
-        $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : date('Y-m-d', strtotime('-7 days'));
-        $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : date('Y-m-d');
-        $content = generateFactoryPerformanceReport($conn, $start_date, $end_date);
-        break;
-    default:
-        $content = '<h1>Invalid report type</h1>';
         
+        return $html;
+    }
+
+    function generatePerformanceReport($conn, $start_date, $end_date) {
+        $html = '<h1 style="color: #4a69bd;">Performance Report</h1>';
+        $html .= '<h2 style="color: #666;">Period: ' . htmlspecialchars($start_date) . ' to ' . htmlspecialchars($end_date) . '</h2>';
+        
+        // Machine Performance
+        $sql = "SELECT m.machine_name, 
+                COUNT(j.job_id) as total_jobs,
+                AVG(TIMESTAMPDIFF(HOUR, j.start_time, COALESCE(j.end_time, NOW()))) as avg_job_duration
+                FROM machines m
+                LEFT JOIN jobs j ON m.id = j.machine_id
+                WHERE j.start_time BETWEEN ? AND ?
+                GROUP BY m.id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<h3>Machine Performance</h3>';
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Machine Name</th>
+                            <th>Total Jobs</th>
+                            <th>Average Job Duration (Hours)</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['machine_name']) . '</td>
+                            <td>' . htmlspecialchars($row['total_jobs']) . '</td>
+                            <td>' . number_format($row['avg_job_duration'], 2) . '</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        }
+
+        // Operator Performance
+        $sql = "SELECT u.username,
+                COUNT(j.job_id) as total_jobs,
+                COUNT(CASE WHEN j.status = 'completed' THEN 1 END) as completed_jobs
+                FROM users u
+                LEFT JOIN jobs j ON u.id = j.operator_id
+                WHERE u.role = 'operator'
+                AND j.start_time BETWEEN ? AND ?
+                GROUP BY u.id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<h3>Operator Performance</h3>';
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Operator Name</th>
+                            <th>Total Jobs</th>
+                            <th>Completed Jobs</th>
+                            <th>Completion Rate</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $completion_rate = ($row['total_jobs'] > 0) ? 
+                    ($row['completed_jobs'] / $row['total_jobs'] * 100) : 0;
+                
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['username']) . '</td>
+                            <td>' . htmlspecialchars($row['total_jobs']) . '</td>
+                            <td>' . htmlspecialchars($row['completed_jobs']) . '</td>
+                            <td>' . number_format($completion_rate, 2) . '%</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        }
+        
+        return $html;
+    }
+
+    function generateFactoryPerformanceReport($conn, $start_date, $end_date) {
+        $html = '<h1 style="color: #4a69bd;">Factory Performance Report</h1>';
+        $html .= '<h2 style="color: #666;">Period: ' . htmlspecialchars($start_date) . ' to ' . htmlspecialchars($end_date) . '</h2>';
+        
+        // Overall Statistics
+        $sql = "SELECT 
+                COUNT(*) as total_jobs,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_jobs,
+                COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as ongoing_jobs,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_jobs
+                FROM jobs
+                WHERE start_time BETWEEN ? AND ?";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result && $row = $result->fetch_assoc()) {
+            $html .= '<h3>Overall Factory Performance</h3>';
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Total Jobs</th>
+                            <th>Completed Jobs</th>
+                            <th>Ongoing Jobs</th>
+                            <th>Pending Jobs</th>
+                            <th>Completion Rate</th>
+                        </tr>';
+            
+            $completion_rate = ($row['total_jobs'] > 0) ? 
+                ($row['completed_jobs'] / $row['total_jobs'] * 100) : 0;
+            
+            $html .= '<tr>
+                        <td>' . htmlspecialchars($row['total_jobs']) . '</td>
+                        <td>' . htmlspecialchars($row['completed_jobs']) . '</td>
+                        <td>' . htmlspecialchars($row['ongoing_jobs']) . '</td>
+                        <td>' . htmlspecialchars($row['pending_jobs']) . '</td>
+                        <td>' . number_format($completion_rate, 2) . '%</td>
+                    </tr>';
+            $html .= '</table>';
+        }
+
+        // Machine Utilization
+        $sql = "SELECT m.machine_name,
+                COUNT(j.job_id) as total_jobs,
+                SUM(CASE WHEN j.status = 'completed' THEN 1 ELSE 0 END) as completed_jobs,
+                AVG(TIMESTAMPDIFF(HOUR, j.start_time, COALESCE(j.end_time, NOW()))) as avg_job_duration
+                FROM machines m
+                LEFT JOIN jobs j ON m.id = j.machine_id
+                WHERE j.start_time BETWEEN ? AND ?
+                GROUP BY m.id";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $start_date, $end_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result && $result->num_rows > 0) {
+            $html .= '<h3>Machine Utilization</h3>';
+            $html .= '<table border="1" cellpadding="5">
+                        <tr style="background-color: #f5f5f5;">
+                            <th>Machine Name</th>
+                            <th>Total Jobs</th>
+                            <th>Completed Jobs</th>
+                            <th>Average Job Duration (Hours)</th>
+                        </tr>';
+            
+            while ($row = $result->fetch_assoc()) {
+                $html .= '<tr>
+                            <td>' . htmlspecialchars($row['machine_name']) . '</td>
+                            <td>' . htmlspecialchars($row['total_jobs']) . '</td>
+                            <td>' . htmlspecialchars($row['completed_jobs']) . '</td>
+                            <td>' . number_format($row['avg_job_duration'], 2) . '</td>
+                        </tr>';
+            }
+            $html .= '</table>';
+        }
+        
+        return $html;
+    }
+
+    // Generate report content based on type
+    switch ($_POST['report_type']) {
+        case 'machines':
+            $content = generateMachinesReport($conn, $date_condition);
+            break;
+        case 'users':
+            $content = generateUsersReport($conn);
+            break;
+        case 'jobs':
+            $content = generateJobsReport($conn, $date_condition);
+            break;
+        case 'performance':
+            $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : date('Y-m-d', strtotime('-30 days'));
+            $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : date('Y-m-d');
+            $content = generatePerformanceReport($conn, $start_date, $end_date);
+            break;    
+        case 'factory_performance':
+            $start_date = isset($_POST['start_date']) ? $_POST['start_date'] : date('Y-m-d', strtotime('-7 days'));
+            $end_date = isset($_POST['end_date']) ? $_POST['end_date'] : date('Y-m-d');
+            $content = generateFactoryPerformanceReport($conn, $start_date, $end_date);
+            break;
+        default:
+            throw new Exception('Invalid report type specified');
+    }
+
+    // Write content to PDF
+    $pdf->writeHTML($content, true, false, true, false, '');
+
+    // Clear any previous output
+    if (ob_get_length()) ob_clean();
+
+    // Set response headers
+    header('Content-Type: application/pdf');
+    header('Cache-Control: private, must-revalidate, post-check=0, pre-check=0, max-age=1');
+    header('Pragma: public');
+    header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+    header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
+
+    // Output PDF
+    $pdf->Output('smd_report_' . $_POST['report_type'] . '_' . date('Y-m-d') . '.pdf', 'I');
+    
+} catch (Exception $e) {
+    // Log error
+    error_log('PDF Generation Error: ' . $e->getMessage());
+    
+    // Clear output buffer
+    if (ob_get_length()) ob_clean();
+    
+    // Return error message
+    header('Content-Type: text/html; charset=utf-8');
+    echo 'Error generating PDF report: ' . $e->getMessage();
 }
 
-// Print content
-$pdf->writeHTML($content, true, false, true, false, '');
-
-// Close and output PDF document
-ob_end_clean();
-$pdf->Output('smd_report_' . $_POST['report_type'] . '_' . date('Y-m-d') . '.pdf', 'I');
 exit;
 ?>

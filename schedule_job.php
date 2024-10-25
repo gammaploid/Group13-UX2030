@@ -3,11 +3,11 @@ require_once 'db_connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $job_id = $_POST['job_id'];
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
 
     // Validate scheduling conflicts
-    $sql = "SELECT * FROM jobs WHERE start_time <= '$end_time' AND end_time >= '$start_time' AND job_id!= '$job_id'";
+    $sql = "SELECT * FROM jobs WHERE start_date <= '$end_date' AND end_date >= '$start_date' AND job_id!= '$job_id'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Update job schedule
-    $sql = "UPDATE jobs SET start_time = '$start_time', end_time = '$end_time' WHERE job_id = '$job_id'";
+    $sql = "UPDATE jobs SET start_date = '$start_date', end_date = '$end_date' WHERE job_id = '$job_id'";
     if ($conn->query($sql) === TRUE) {
         header("Location: schedule_job.php?success=Job scheduled successfully");
     } else {
@@ -31,11 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <label for="job_id">Job ID:</label>
     <input type="number" id="job_id" name="job_id" required>
 
-    <label for="start_time">Start Time:</label>
-    <input type="datetime-local" id="start_time" name="start_time" required>
+    <label for="start_date">Start Time:</label>
+    <input type="datetime-local" id="start_date" name="start_date" required>
 
-    <label for="end_time">End Time:</label>
-    <input type="datetime-local" id="end_time" name="end_time" required>
+    <label for="end_date">End Time:</label>
+    <input type="datetime-local" id="end_date" name="end_date" required>
 
     <button type="submit">Schedule Job</button>
 </form>

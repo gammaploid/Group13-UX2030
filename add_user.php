@@ -1,9 +1,8 @@
 <?php
-$page = 'user_management';
-$page_title = 'Add User';
-$back_url = 'user_management.php';
-include 'templates/admin_header.php';
+session_start();
+require_once 'db_connection.php';
 
+// Process form submission before any output
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $conn->real_escape_string($_POST["username"] ?? '');
     $password = $_POST["password"] ?? '';
@@ -29,6 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+// Set page variables and include header
+$page = 'user_management';
+$page_title = 'Add User';
+$back_url = 'user_management.php';
+include 'templates/admin_header.php';
 ?>
 
 <style>

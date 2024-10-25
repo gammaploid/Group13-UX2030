@@ -1,5 +1,5 @@
 <?php
-// machine_management.php
+
 session_start();
 require_once 'db_connection.php';
 require_once 'Notification.php';
@@ -62,7 +62,7 @@ $result = $stmt->get_result();
 ?>
 
 <head>
-    <!-- ... other head content ... -->
+  
     <script src="scripts/machine_management.js"></script>
     <link rel="stylesheet" type="text/css" href="styles/machine_management.css">
 </head>

@@ -1,4 +1,4 @@
-// assign_role.php
+
 
 <form action="assign_role_process.php" method="post">
     <label for="operator">Select Operator:</label>

@@ -1,4 +1,4 @@
-<!-- view_jobs.php -->
+
 <?php
 require_once 'db_connection.php';
 

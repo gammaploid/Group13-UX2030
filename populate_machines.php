@@ -1,7 +1,7 @@
 <?php
 include 'db_connection.php';
 
-// Ensure the machine_id column exists in the machines table
+
 $sql = "ALTER TABLE machines ADD COLUMN IF NOT EXISTS machine_id INT AUTO_INCREMENT PRIMARY KEY";
 $conn->query($sql);
 

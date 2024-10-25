@@ -1,5 +1,4 @@
 <?php
-// mark_as_read.php
 session_start();
 require_once 'db_connection.php';
 require_once 'Message.php';

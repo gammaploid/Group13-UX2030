@@ -34,28 +34,37 @@ function getMachinePerformance($conn, $start_date, $end_date) {
 function getJobStatistics($conn, $start_date, $end_date) {
     $sql = "SELECT 
                 COUNT(*) as total_jobs,
-                COUNT(CASE WHEN end_time IS NOT NULL THEN 1 END) as completed_jobs,
-                AVG(TIMESTAMPDIFF(HOUR, start_time, IFNULL(end_time, NOW()))) as avg_duration
+                COUNT(CASE WHEN end_date IS NOT NULL THEN 1 END) as completed_jobs,
+                COALESCE(AVG(UNIX_TIMESTAMP(end_date) - UNIX_TIMESTAMP(start_date)) / 3600, 0) as avg_duration
             FROM jobs
-            WHERE start_time BETWEEN ? AND ?";
+            WHERE start_date BETWEEN ? AND ?";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ss", $start_date, $end_date);
     $stmt->execute();
-    return $stmt->get_result()->fetch_assoc();
+    $result = $stmt->get_result()->fetch_assoc();
+    
+    // Calculate completion percentage
+    $completion_percentage = $result['total_jobs'] > 0 ? $result['completed_jobs'] / $result['total_jobs'] * 100 : 0;
+    
+    return [
+        'total_jobs' => $result['total_jobs'],
+        'completed_jobs' => $result['completed_jobs'],
+        'avg_duration' => $result['avg_duration'],
+        'completion_percentage' => $completion_percentage,
+    ];
 }
-
 // Function to get operator performance
 function getOperatorPerformance($conn, $start_date, $end_date) {
     $sql = "SELECT 
                 u.username,
                 COUNT(j.job_id) as total_jobs,
-                COUNT(CASE WHEN j.end_time IS NOT NULL THEN 1 END) as completed_jobs,
-                AVG(TIMESTAMPDIFF(HOUR, j.start_time, IFNULL(j.end_time, NOW()))) as avg_job_duration
+                COUNT(CASE WHEN j.end_date IS NOT NULL THEN 1 END) as completed_jobs,
+                AVG(TIMESTAMPDIFF(HOUR, j.start_date, IFNULL(j.end_date, NOW()))) as avg_job_duration
             FROM users u
             LEFT JOIN jobs j ON u.id = j.operator_id
             WHERE u.role = 'operator'
-            AND (j.start_time BETWEEN ? AND ? OR j.start_time IS NULL)
+            AND (j.start_date BETWEEN ? AND ? OR j.start_date IS NULL)
             GROUP BY u.id, u.username";
     
     $stmt = $conn->prepare($sql);
@@ -141,7 +150,7 @@ $operator_performance = getOperatorPerformance($conn, $start_date, $end_date);
             </div>
             <div class="stat-card">
                 <h3>Average Duration</h3>
-                <p><?php echo number_format($job_statistics['avg_duration'], 2); ?> hours</p>
+                <p><?php echo $job_statistics['avg_duration'] !== null ? number_format($job_statistics['avg_duration'], 2) : 'N/A'; ?> hours</p>
             </div>
             <div class="stat-card">
                 <h3>Completion Rate</h3>
@@ -171,6 +180,7 @@ $operator_performance = getOperatorPerformance($conn, $start_date, $end_date);
                         $completion_rate = $operator['total_jobs'] > 0 ? 
                             ($operator['completed_jobs'] / $operator['total_jobs']) * 100 : 0;
                         ?>
+                        
                         <tr>
                             <td><?php echo htmlspecialchars($operator['username']); ?></td>
                             <td><?php echo $operator['total_jobs']; ?></td>

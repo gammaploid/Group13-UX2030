@@ -70,3 +70,5 @@ class Message {
         return true;
     }
 }
+
+?>

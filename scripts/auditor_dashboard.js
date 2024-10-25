@@ -1,4 +1,4 @@
-// scripts/auditor_dashboard.js
+
 document.addEventListener('DOMContentLoaded', function() {
     const markAsReadButtons = document.querySelectorAll('.mark-as-read-button');
     markAsReadButtons.forEach(button => {

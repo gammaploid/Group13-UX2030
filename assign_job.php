@@ -1,5 +1,4 @@
 <?php
-// assign_job.php
 session_start();
 include 'db_connection.php';
 
@@ -8,7 +7,6 @@ if (!isset($_SESSION['user_id']) || (!isset($_SESSION['role']) || ($_SESSION['ro
     header("Location: login.php?error=access_denied");
     exit();
 }
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $job_name = $conn->real_escape_string($_POST['job_name']);
     $operator_id = (int)$_POST['operator_id'];
@@ -16,12 +14,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $start_time = $conn->real_escape_string($_POST['start_time']);
     $end_time = $conn->real_escape_string($_POST['end_time']);
 
-    $sql = "INSERT INTO jobs (job_name, operator_id, machine_id, start_time, end_time) VALUES ('$job_name', $operator_id, $machine_id, '$start_time', '$end_time')";
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare("INSERT INTO jobs (job_name, operator_id, machine_id, start_time, end_time) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("siiii", $job_name, $operator_id, $machine_id, $start_time, $end_time);
+    if ($stmt->execute()) {
         header("Location: admin_dashboard.php?success=Job assigned successfully");
     } else {
         header("Location: assign_job.php?error=Error assigning job: " . $conn->error);
     }
+    $stmt->close();
     $conn->close();
 }
 

@@ -25,13 +25,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     input[type="text"], 
     select {
-        width: 100%; /* Full width */
+        width: 100%;
         max-width: 500px; /* Max width */
         height: 40px; /* Height */
         font-size: 16px; /* Font size */
         padding: 10px; /* Padding */
-        box-sizing: border-box; /* Include padding in width/height */
-        border: 1px solid #ddd; /* Border style */
+        box-sizing: border-box; 
+        border: 1px solid #ddd; 
         border-radius: 5px; /* Rounded corners */
     }
 

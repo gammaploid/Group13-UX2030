@@ -1,5 +1,5 @@
 <?php
-// login_process.php
+
 
 session_start();
 include 'db_connection.php';
