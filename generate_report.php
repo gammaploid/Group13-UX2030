@@ -144,7 +144,7 @@ try {
                 FROM jobs j 
                 LEFT JOIN users u ON j.operator_id = u.id 
                 LEFT JOIN machines m ON j.machine_id = m.id" . 
-                ($date_condition ? str_replace('timestamp', 'start_time', $date_condition) : '');
+                ($date_condition ? str_replace('timestamp', 'start_date', $date_condition) : '');
         
         $result = $conn->query($sql);
         
@@ -155,8 +155,8 @@ try {
                             <th>Job Name</th>
                             <th>Operator</th>
                             <th>Machine</th>
-                            <th>Start Time</th>
-                            <th>End Time</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
                             <th>Status</th>
                         </tr>';
             
@@ -166,8 +166,8 @@ try {
                             <td>' . htmlspecialchars($row['job_name']) . '</td>
                             <td>' . htmlspecialchars($row['operator_name']) . '</td>
                             <td>' . htmlspecialchars($row['machine_name']) . '</td>
-                            <td>' . htmlspecialchars($row['start_time']) . '</td>
-                            <td>' . (isset($row['end_time']) ? htmlspecialchars($row['end_time']) : '-') . '</td>
+                            <td>' . htmlspecialchars($row['start_date']) . '</td>
+                            <td>' . (isset($row['end_date']) ? htmlspecialchars($row['end_date']) : '-') . '</td>
                             <td>' . htmlspecialchars($row['status']) . '</td>
                         </tr>';
             }
@@ -186,10 +186,10 @@ try {
         // Machine Performance
         $sql = "SELECT m.machine_name, 
                 COUNT(j.job_id) as total_jobs,
-                AVG(TIMESTAMPDIFF(HOUR, j.start_time, COALESCE(j.end_time, NOW()))) as avg_job_duration
+                AVG(TIMESTAMPDIFF(HOUR, j.start_date, COALESCE(j.end_date, NOW()))) as avg_job_duration
                 FROM machines m
                 LEFT JOIN jobs j ON m.id = j.machine_id
-                WHERE j.start_time BETWEEN ? AND ?
+                WHERE j.start_date BETWEEN ? AND ?
                 GROUP BY m.id";
         
         $stmt = $conn->prepare($sql);
@@ -223,7 +223,7 @@ try {
                 FROM users u
                 LEFT JOIN jobs j ON u.id = j.operator_id
                 WHERE u.role = 'operator'
-                AND j.start_time BETWEEN ? AND ?
+                AND j.start_date BETWEEN ? AND ?
                 GROUP BY u.id";
         
         $stmt = $conn->prepare($sql);
@@ -269,7 +269,7 @@ try {
                 COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as ongoing_jobs,
                 COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_jobs
                 FROM jobs
-                WHERE start_time BETWEEN ? AND ?";
+                WHERE start_date BETWEEN ? AND ?";
         
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ss", $start_date, $end_date);
@@ -304,10 +304,10 @@ try {
         $sql = "SELECT m.machine_name,
                 COUNT(j.job_id) as total_jobs,
                 SUM(CASE WHEN j.status = 'completed' THEN 1 ELSE 0 END) as completed_jobs,
-                AVG(TIMESTAMPDIFF(HOUR, j.start_time, COALESCE(j.end_time, NOW()))) as avg_job_duration
+                AVG(TIMESTAMPDIFF(HOUR, j.start_date, COALESCE(j.end_date, NOW()))) as avg_job_duration
                 FROM machines m
                 LEFT JOIN jobs j ON m.id = j.machine_id
-                WHERE j.start_time BETWEEN ? AND ?
+                WHERE j.start_date BETWEEN ? AND ?
                 GROUP BY m.id";
         
         $stmt = $conn->prepare($sql);
