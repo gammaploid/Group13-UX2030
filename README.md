@@ -1,6 +1,7 @@
 # Group 13 (COMP2030 Project)
  
 Web-based Smart Manfacturing Dashboard
+![admin](1.png "SMD - Admin Dashboard")
 
 # Smart Manufacturing Dashboard (SMD)
 
