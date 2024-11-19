@@ -1,8 +1,11 @@
-# Smart Manufacturing Dashboard (SMD) Project
- 
-Web-based Smart Manfacturing Dashboard
-![admin](1.png "SMD - Admin Dashboard")
 
+ <div align="center">
+  <h1>Smart Manufacturing Dashboard (SMD) Project</h1>
+  <p>Web-based Smart Manfacturing Dashboard</p>
+</div>
+
+
+![admin](1.png "SMD - Admin Dashboard")
 
 
 ## Table of Contents
